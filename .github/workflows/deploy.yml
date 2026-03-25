@@ -1,0 +1,29 @@
+name: Deploy to Selectel
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Deploy to Server via SSH
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_KEY }}
+          script: |
+            # Navigate to project directory (change if yours is different)
+            cd ~/dima-diploma || { mkdir -p ~/dima-diploma && cd ~/dima-diploma && git clone https://github.com/${{ github.repository }} . ; }
+            
+            git pull origin main
+            
+            # Restart containers
+            docker-compose down
+            docker-compose up -d --build

@@ -20,8 +20,8 @@ jobs:
           key: ${{ secrets.SSH_KEY }}
           passphrase: ${{ secrets.SSH_PASSPHRASE }}
           script: |
-            # Navigate to project directory (change if yours is different)
-            cd ~/dima-diploma || { mkdir -p ~/dima-diploma && cd ~/dima-diploma && git clone https://github.com/${{ github.repository }} . ; }
+            # Navigate to project directory
+            cd ~/web-graph || { mkdir -p ~/web-graph && cd ~/web-graph && git clone https://github.com/${{ github.repository }} . ; }
             
             git pull origin main
             

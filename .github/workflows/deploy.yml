@@ -28,3 +28,6 @@ jobs:
             # Restart containers
             docker-compose down
             docker-compose up -d --build
+            
+            # Apply migrations
+            docker-compose exec -T web alembic upgrade head

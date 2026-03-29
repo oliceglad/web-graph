@@ -20,14 +20,26 @@ jobs:
           key: ${{ secrets.SSH_KEY }}
           passphrase: ${{ secrets.SSH_PASSPHRASE }}
           script: |
-            # Navigate to project directory
-            cd ~/web-graph || { mkdir -p ~/web-graph && cd ~/web-graph && git clone https://github.com/${{ github.repository }} . ; }
+            cd ~/web-graph || { git clone https://github.com/${{ github.repository }} ~/web-graph && cd ~/web-graph; }
             
             git pull origin main
             
-            # Restart containers
+            # 1. Останавливаем старые контейнеры
             docker-compose down
+            
+            # 2. Запускаем новые (флаг -v при желании очистит старые данные, если нужно)
             docker-compose up -d --build
             
-            # Apply migrations
+            # 3. КРИТИЧЕСКИЙ ШАГ: Ждем, пока база станет "Healthy"
+            echo "Waiting for database to be ready..."
+            for i in {1..20}; do
+              if [ "$(docker inspect --format='{{.State.Health.Status}}' $(docker-compose ps -q db))" == "healthy" ]; then
+                echo "Database is up and running!"
+                break
+              fi
+              echo "Waiting... ($i/20)"
+              sleep 2
+            done
+
+            # 4. Только теперь запускаем миграции
             docker-compose exec -T web alembic upgrade head
